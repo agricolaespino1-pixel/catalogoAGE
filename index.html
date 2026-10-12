@@ -1,301 +1,89 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Asistencia - Grupo Espino</title>
-    <!-- Tailwind CSS para un diseño limpio y moderno -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons para iconos profesionales -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- SheetJS para exportación nativa a Excel sin dependencias de servidor -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
-
-    <!-- Encabezado Principal -->
-    <header class="bg-green-700 text-white shadow-md py-6 px-4 mb-8">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <i data-lucide="clipboard-check" class="w-8 h-8 text-green-200"></i>
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Control de Asistencia</h1>
-                    <p class="text-sm text-green-100 font-medium">Agrícola Espino & Grupo Espino</p>
-                </div>
-            </div>
-            <div class="text-right text-sm text-green-100 bg-green-800/40 px-4 py-2 rounded-lg border border-green-600/30">
-                <span id="current-date-time" class="font-mono">Cargando fecha y hora...</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Contenido Principal -->
-    <main class="flex-grow max-w-4xl w-full mx-auto px-4 pb-12">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            <!-- Formulario de Registro (Columna Izquierda / 1 tercio) -->
-            <div class="md:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-fit">
-                <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2 border-b pb-2">
-                    <i data-lucide="user-plus" class="w-5 h-5 text-green-600"></i>
-                    Nuevo Registro
-                </h2>
-                
-                <form id="attendance-form" class="space-y-4">
-                    <div>
-                        <label for="employee-name" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Nombre y Apellido</label>
-                        <input type="text" id="employee-name" required placeholder="Ej. Juan Pérez"
-                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
-                    </div>
-
-                    <div>
-                        <label for="record-type" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tipo de Evento</label>
-                        <select id="record-type" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm bg-white">
-                            <option value="Ingreso">🚀 Ingreso</option>
-                            <option value="Salida">🏁 Salida</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-150 flex items-center justify-center gap-2 text-sm shadow-sm">
-                        <i data-lucide="save" class="w-4 h-4"></i>
-                        Guardar Registro
-                    </button>
-                </form>
-            </div>
-
-            <!-- Tabla y Acciones (Columna Derecha / 2 tercios) -->
-            <div class="md:col-span-2 space-y-4">
-                
-                <!-- Barra de Acciones Globales -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="calendar" class="w-5 h-5 text-slate-400"></i>
-                        <span class="text-sm font-medium text-slate-700">Registros del Día</span>
-                    </div>
-                    
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <button onclick="exportToExcel()" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                            Exportar Excel (.xlsx)
-                        </button>
-                        <button onclick="clearLogs()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold py-2 px-3 rounded-lg transition-colors border border-rose-200 flex items-center justify-center gap-1" title="Limpiar todos los registros">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            Limpiar
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Contenedor de la Tabla -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
-                                    <th class="py-3 px-4">Personal</th>
-                                    <th class="py-3 px-4">Tipo</th>
-                                    <th class="py-3 px-4">Fecha / Hora</th>
-                                    <th class="py-3 px-4 text-right">Enviar</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendance-table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
-                                <!-- Filas dinámicas aquí -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Estado Vacío -->
-                    <div id="empty-state" class="p-8 text-center hidden">
-                        <i data-lucide="folder-open" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
-                        <p class="text-slate-500 font-medium text-sm">No hay registros guardados hoy</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <!-- Pie de Página Profesional -->
-    <footer class="bg-slate-900 text-slate-400 text-xs py-6 mt-auto border-t border-slate-800">
-        <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div>
-                <p>&copy; 2026 Grupo Espino. Todos los derechos reservados.</p>
-            </div>
-            <div class="flex items-center gap-1.5 font-medium text-slate-300 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700/50">
-                <i data-lucide="code" class="w-3.5 h-3.5 text-green-500"></i>
-                <span>Creado por <strong class="text-white">Andy Espino A.</strong></span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Lógica de la Aplicación -->
-    <script>
-        // Inicializar Iconos de Lucide
-        lucide.createIcons();
-
-        // Reloj en tiempo real
-        function updateClock() {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit',
-                hour12: false 
-            };
-            document.getElementById('current-date-time').textContent = now.toLocaleDateString('es-ES', options);
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // Cargar registros iniciales desde LocalStorage
-        let attendanceLogs = JSON.parse(localStorage.getItem('attendance_logs_espino')) || [];
-
-        const form = document.getElementById('attendance-form');
-        const tableBody = document.getElementById('attendance-table-body');
-        const emptyState = document.getElementById('empty-state');
-
-        // Renderizar la tabla de registros
-        function renderTable() {
-            tableBody.innerHTML = '';
-            
-            if (attendanceLogs.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
-
-            // Mostrar los más recientes primero
-            [...attendanceLogs].reverse().forEach((log, index) => {
-                const originalIndex = attendanceLogs.length - 1 - index;
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-colors";
-                
-                const badgeClass = log.type === 'Ingreso' 
-                    ? 'bg-green-50 text-green-700 border-green-200' 
-                    : 'bg-amber-50 text-amber-700 border-amber-200';
-
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-medium text-slate-900">${log.name}</td>
-                    <td class="py-3 px-4">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeClass}">
-                            ${log.type}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4 font-mono text-xs text-slate-500">${log.date} ${log.time}</td>
-                    <td class="py-3 px-4 text-right">
-                        <button onclick="sendIndividualWhatsApp(${originalIndex})" class="inline-flex items-center justify-center p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-all" title="Enviar comprobante por WhatsApp">
-                            <i data-lucide="share-2" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
-            
-            // Re-renderizar iconos dinámicos
-            lucide.createIcons();
-        }
-
-        // Guardar nuevo registro
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const nameInput = document.getElementById('employee-name');
-            const typeInput = document.getElementById('record-type');
-            
-            const now = new Date();
-            
-            // Formatear Fecha (DD/MM/YYYY) y Hora (HH:MM:SS)
-            const dateStr = now.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const timeStr = now.toLocaleTimeString('es-PE', { hour12: false });
-
-            const newLog = {
-                name: nameInput.value.trim(),
-                type: typeInput.value,
-                date: dateStr,
-                time: timeStr
-            };
-
-            attendanceLogs.push(newLog);
-            localStorage.setItem('attendance_logs_espino', JSON.stringify(attendanceLogs));
-            
-            nameInput.value = '';
-            renderTable();
-        });
-
-        // Enviar por WhatsApp un registro individual
-        function sendIndividualWhatsApp(index) {
-            const log = attendanceLogs[index];
-            const message = `📌 *CONTROL DE ASISTENCIA - GRUPO ESPINO*
-
-` +
-                            `👤 *Personal:* ${log.name}
-` +
-                            `📋 *Acción:* ${log.type === 'Ingreso' ? '🚀 INGRESO' : '🏁 SALIDA'}
-` +
-                            `📅 *Fecha:* ${log.date}
-` +
-                            `🕐 *Hora:* ${log.time}
-
-` +
-                            `_Sistema de Gestión Agrícola Espino_`;
-            
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
-        }
-
-        // Generar y exportar Excel por día de forma nativa
-        function exportToExcel() {
-            if (attendanceLogs.length === 0) {
-                alert('No hay registros guardados para exportar.');
-                return;
-            }
-
-            // Obtener fecha de hoy para el título del archivo
-            const now = new Date();
-            const dateLabel = now.toISOString().split('T')[0];
-
-            // Mapear y preparar datos estructurados para el reporte
-            const worksheetData = attendanceLogs.map((log, index) => ({
-                'N°': index + 1,
-                'Trabajador / Personal': log.name,
-                'Tipo de Evento': log.type,
-                'Fecha': log.date,
-                'Hora': log.time
-            }));
-
-            // Crear libro y hoja con SheetJS
-            const workbook = XLSX.utils.book_new();
-            const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-
-            // Ajuste básico de anchos de columna para visualización profesional
-            const colWidths = [
-                { wch: 6 },
-                { wch: 30 },
-                { wch: 15 },
-                { wch: 15 },
-                { wch: 12 }
-            ];
-            worksheet['!cols'] = colWidths;
-
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
-
-            // Descargar el archivo excel generado
-            XLSX.writeFile(workbook, `Asistencia_Diaria_${dateLabel}_GrupoEspino.xlsx`);
-        }
-
-        // Limpiar base de datos local previa confirmación de seguridad
-        function clearLogs() {
-            if (confirm('¿Está seguro de que desea limpiar todos los registros de hoy? Esta acción no se puede deshacer.')) {
-                attendanceLogs = [];
-                localStorage.removeItem('attendance_logs_espino');
-                renderTable();
-            }
-        }
-
-        // Renderizado Inicial al cargar la página
-        renderTable();
-    </script>
-</body>
-</html>
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Catálogo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--c:#2f6b4f}*{box-sizing:border-box}body{margin:auto;font:15px system-ui,sans-serif;background:#faf8f4;color:#222;max-width:900px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--c);color:#fff;position:sticky;top:0;z-index:5}
+.lg{display:flex;align-items:center;gap:8px;font-size:18px}.lg img{height:34px;width:34px;border-radius:50%;object-fit:cover}
+.ic{background:none;border:0;color:#fff;font-size:20px;position:relative;cursor:pointer}.ic i{position:absolute;top:-6px;right:-8px;background:#d33;font-size:11px;border-radius:9px;padding:1px 5px;font-style:normal}
+.sr{width:calc(100% - 32px);margin:12px 16px;padding:11px 14px;border:1px solid #ddd;border-radius:24px}
+.bn{margin:0 16px;height:170px;border-radius:16px;background:#d9e6dd center/cover;display:flex;align-items:flex-end;color:#fff}.bn div{padding:16px;background:linear-gradient(transparent,#0009);width:100%;border-radius:0 0 16px 16px}.bn h2{margin:0}.bn p{margin:4px 0 0}
+nav{display:flex;gap:8px;overflow-x:auto;padding:12px 16px}nav button{border:1px solid #ccc;background:#fff;border-radius:20px;padding:7px 16px;white-space:nowrap;cursor:pointer}nav .on{background:var(--c);color:#fff;border-color:var(--c)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:0 16px 24px}
+.card{background:#fff;border-radius:14px;padding:10px;box-shadow:0 1px 6px #0001;display:flex;flex-direction:column;gap:4px}.card h4{margin:2px 0;font-weight:500;font-size:14px}
+.ph{aspect-ratio:1;border-radius:10px;background:#e8efe9 center/cover;display:grid;place-items:center;font-size:40px;color:var(--c);position:relative}.ph em{position:absolute;top:6px;left:6px;background:var(--c);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-style:normal}
+button{font:inherit}.card button,.pr{background:var(--c);color:#fff;border:0;border-radius:10px;padding:9px;cursor:pointer;width:100%}.card button:disabled{background:#bbb}
+.mb{position:fixed;inset:0;background:#0006;display:grid;place-items:center;z-index:9;padding:12px}.md{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:440px;max-height:90vh;overflow:auto}
+.md input,.md select{width:100%;padding:9px;margin:4px 0 10px;border:1px solid #ccc;border-radius:8px}.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee}
+.pn{padding:0 16px 24px}.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}.k div{background:#fff;padding:12px;border-radius:12px;box-shadow:0 1px 6px #0001}.k b{display:block;font-size:20px}
+.cv{height:240px;background:#fff;border-radius:12px;padding:8px;margin-bottom:12px}.tw{overflow-x:auto;margin-top:10px}table{width:100%;border-collapse:collapse;background:#fff}td,th{padding:8px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap}th{background:#eef3ef}
+.sm{padding:6px 11px;border:1px solid #ccc;background:#fff;border-radius:8px;cursor:pointer;color:#222}
+</style></head><body><div id="app"></div><div id="m"></div>
+<script>
+// Pega aquí la URL de tu Apps Script (termina en /exec) para guardar en Google Sheets. Vacío = solo este navegador.
+const API='';
+const K='catalogo_v1',R={admin:['dash','prod','ped','ban','cfg','usr'],vendedor:['dash','ped'],bodega:['prod']};
+const D={cfg:{name:'Mi Catálogo',logo:'',color:'#2f6b4f',wa:'51999999999',cur:'S/',btn:'Pedir por WhatsApp'},cats:['Frutas','Abonos','Servicios'],
+prods:[{id:1,n:'Compost orgánico 25 kg',c:'Abonos',p:35,s:40,img:'',b:'Nuevo',st:'Activo'},{id:2,n:'Uva red globe 5 kg',c:'Frutas',p:48,s:25,img:'',b:'',st:'Activo'},{id:3,n:'Asesoría de cultivo',c:'Servicios',p:120,s:99,img:'',b:'Oferta',st:'Activo'}],
+banners:[{t:'Calidad directa del campo',x:'Pide hoy y recibe en tu puerta',img:''}],orders:[],
+users:[{u:'admin',p:'admin123',r:'admin'},{u:'vendedor',p:'1234',r:'vendedor'},{u:'bodega',p:'1234',r:'bodega'}]};
+let S;try{S=JSON.parse(localStorage.getItem(K))||D}catch(e){S=D}
+let cart={},cat='Todos',q='',me=null,tab='dash',bi=0;
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){alert('Almacenamiento lleno: usa fotos más pequeñas')}
+ if(API)fetch(API,{method:'POST',mode:'no-cors',body:JSON.stringify(S)}).catch(()=>{})}
+function img(f,cb){const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const m=Math.min(1,700/i.width),c=document.createElement('canvas');c.width=i.width*m;c.height=i.height*m;c.getContext('2d').drawImage(i,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.7))};i.src=r.result};r.readAsDataURL(f)}
+function modal(h){$('#m').innerHTML=`<div class=mb onclick="if(event.target==this)cl()"><div class=md>${h}</div></div>`}
+function cl(){$('#m').innerHTML=''}
+function shop(){const c=S.cfg,n=Object.values(cart).reduce((a,b)=>a+b,0);document.documentElement.style.setProperty('--c',c.color);
+$('#app').innerHTML=`<header><button class=ic onclick="login()">☰</button><div class=lg>${c.logo?`<img src="${c.logo}">`:''}<b>${esc(c.name)}</b></div><button class=ic onclick="cartOpen()">🛍<i>${n}</i></button></header>
+<input class=sr placeholder="Buscar..." value="${esc(q)}" oninput="q=this.value.toLowerCase();grid()"><div id=bn></div>
+<nav>${['Todos',...S.cats].map(x=>`<button class="${x==cat?'on':''}" onclick="cat=this.textContent;shop()">${esc(x)}</button>`).join('')}</nav><div class=grid id=grid></div>`;ban();grid()}
+function ban(){const b=S.banners[bi%S.banners.length];if($('#bn'))$('#bn').innerHTML=b?`<div class=bn style="background-image:url(${b.img||''})"><div><h2>${esc(b.t)}</h2><p>${esc(b.x)}</p></div></div>`:''}
+setInterval(()=>{bi++;ban()},4500);
+function grid(){const l=S.prods.filter(p=>p.st!='Oculto'&&(cat=='Todos'||p.c==cat)&&p.n.toLowerCase().includes(q));
+$('#grid').innerHTML=l.map(p=>`<div class=card><div class=ph style="background-image:url(${p.img||''})">${p.img?'':esc(p.n[0])}${p.b?`<em>${esc(p.b)}</em>`:''}</div><h4>${esc(p.n)}</h4><b>${S.cfg.cur}${p.p}</b><button ${p.s<1?'disabled':''} onclick="add(${p.id})">${p.s<1?'Agotado':'Agregar'}</button></div>`).join('')||'<p>No hay productos en esta categoría.</p>'}
+function add(id){cart[id]=(cart[id]||0)+1;shop()}
+function chg(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<1)delete cart[id];shop();cartOpen()}
+function items(){return Object.entries(cart).map(([id,q])=>({p:S.prods.find(x=>x.id==id),q})).filter(x=>x.p)}
+function cartOpen(){const it=items(),t=it.reduce((a,x)=>a+x.p.p*x.q,0),c=S.cfg.cur;
+modal(`<h3>Tu pedido</h3>${it.map(x=>`<div class=row><span>${esc(x.p.n)}</span><span><button class=sm onclick="chg(${x.p.id},-1)">−</button> ${x.q} <button class=sm onclick="chg(${x.p.id},1)">+</button></span><b>${c}${(x.p.p*x.q).toFixed(2)}</b></div>`).join('')||'<p>Agrega productos para armar tu pedido.</p>'}<h3>Total: ${c}${t.toFixed(2)}</h3><input id=cn placeholder="Tu nombre"><button class=pr onclick="send()">${esc(S.cfg.btn)}</button>`)}
+async function send(){if(!items().length)return;const nm=$('#cn').value||'Cliente',c=S.cfg.cur;
+ if(API)try{const n=await(await fetch(API)).json();if(n.prods)S=n}catch(e){}
+ const it=items(),t=it.reduce((a,x)=>a+x.p.p*x.q,0);
+ S.orders.push({id:Date.now(),d:new Date().toISOString().slice(0,10),cl:nm,items:it.map(x=>({n:x.p.n,q:x.q,p:x.p.p})),tot:t,est:'Nuevo'});
+ it.forEach(x=>x.p.s=Math.max(0,x.p.s-x.q));
+ const msg=`Hola, soy ${nm}. Mi pedido:\n`+it.map(x=>`• ${x.q}x ${x.p.n} — ${c}${x.p.p}`).join('\n')+`\nTotal: ${c}${t.toFixed(2)}`;
+ window.open('https://wa.me/'+S.cfg.wa+'?text='+encodeURIComponent(msg));cart={};save();cl();shop()}
+function login(){if(me)return admin();modal(`<h3>Panel administrativo</h3><input id=lu placeholder="Usuario"><input id=lp type=password placeholder="Contraseña"><button class=pr onclick="ok()">Ingresar</button>`)}
+function ok(){const u=S.users.find(x=>x.u==$('#lu').value&&x.p==$('#lp').value);if(!u)return alert('Usuario o contraseña incorrectos');me=u;cl();admin()}
+function admin(){const T={dash:'Dashboard',prod:'Productos',ped:'Pedidos',ban:'Banners',cfg:'Config',usr:'Usuarios'};if(!R[me.r].includes(tab))tab=R[me.r][0];
+$('#app').innerHTML=`<header><button class=ic onclick="me=null;shop()">⏻</button><b>Panel · ${esc(me.u)}</b><button class=ic onclick="shop()">🏪</button></header><nav>${R[me.r].map(t=>`<button class="${t==tab?'on':''}" onclick="tab='${t}';admin()">${T[t]}</button>`).join('')}</nav><div class=pn>${V[tab]()}</div>`;if(tab=='dash')charts()}
+const tbl=(h,r)=>`<div class=tw><table><tr>${h.map(x=>`<th>${x}`).join('')}${r}</table></div>`;
+const V={
+dash:()=>{const o=S.orders.filter(x=>x.est!='Anulado'),t=new Date().toISOString().slice(0,10),sum=a=>a.reduce((s,x)=>s+x.tot,0),c=S.cfg.cur;
+return `<div class=k><div>Ventas hoy<b>${c}${sum(o.filter(x=>x.d==t)).toFixed(2)}</b></div><div>Ventas del mes<b>${c}${sum(o.filter(x=>x.d.startsWith(t.slice(0,7)))).toFixed(2)}</b></div><div>Pedidos<b>${o.length}</b></div><div>Ticket promedio<b>${c}${(o.length?sum(o)/o.length:0).toFixed(2)}</b></div><div>Stock bajo<b>${S.prods.filter(p=>p.s<5).length}</b></div></div><div class=cv><canvas id=c1></canvas></div><div class=cv><canvas id=c2></canvas></div><button class=sm onclick="xl()">⬇ Descargar Excel</button>`},
+prod:()=>`<button class=sm onclick="ed('prods',-1,PF(),{id:Date.now(),st:'Activo',c:S.cats[0],s:0,p:0,b:''})">+ Nuevo producto</button>`+tbl(['Producto','Categoría','Precio','Stock','Estado',''],S.prods.map((p,i)=>`<tr><td>${esc(p.n)}<td>${esc(p.c)}<td>${p.p}<td style="color:${p.s<5?'#d33':'inherit'}">${p.s}<td>${p.st}<td><button class=sm onclick="ed('prods',${i},PF())">Editar</button> <button class=sm onclick="del('prods',${i})">✕</button>`).join('')),
+ped:()=>`<button class=sm onclick="xl()">⬇ Descargar Excel</button>`+tbl(['Fecha','Cliente','Detalle','Total','Estado'],S.orders.slice().reverse().map(o=>`<tr><td>${o.d}<td>${esc(o.cl)}<td>${o.items.map(i=>i.q+'x '+esc(i.n)).join(', ')}<td>${S.cfg.cur}${o.tot.toFixed(2)}<td><select onchange="st(${o.id},this.value)">${['Nuevo','Confirmado','Entregado','Anulado'].map(e=>`<option ${e==o.est?'selected':''}>${e}`).join('')}</select>`).join('')),
+ban:()=>`<button class=sm onclick="ed('banners',-1,BF(),{t:'',x:'',img:''})">+ Nuevo banner</button>`+tbl(['Título','Texto',''],S.banners.map((b,i)=>`<tr><td>${esc(b.t)}<td>${esc(b.x)}<td><button class=sm onclick="ed('banners',${i},BF())">Editar</button> <button class=sm onclick="del('banners',${i})">✕</button>`).join('')),
+cfg:()=>`<button class=sm onclick="cfgEd()">Editar nombre, logo, colores y WhatsApp</button><p>Categorías: ${S.cats.map(esc).join(', ')}</p>`,
+usr:()=>`<button class=sm onclick="ed('users',-1,UF(),{u:'',p:'',r:'vendedor'})">+ Nuevo usuario</button>`+tbl(['Usuario','Rol',''],S.users.map((u,i)=>`<tr><td>${esc(u.u)}<td>${u.r}<td><button class=sm onclick="ed('users',${i},UF())">Editar</button> <button class=sm onclick="del('users',${i})">✕</button>`).join(''))};
+const PF=()=>[['n','Nombre','text'],['c','Categoría','select',S.cats],['p','Precio','number'],['s','Stock','number'],['b','Etiqueta (Nuevo, Oferta)','text'],['st','Estado','select',['Activo','Oculto']],['img','Foto','file']];
+const BF=()=>[['t','Título','text'],['x','Texto','text'],['img','Imagen','file']],UF=()=>[['u','Usuario','text'],['p','Contraseña','text'],['r','Rol','select',['admin','vendedor','bodega']]];
+function form(t,f,v,done){modal(`<h3>${t}</h3>${f.map(([k,l,ty,o])=>`<label>${l}${ty=='select'?`<select id=f_${k}>${o.map(x=>`<option ${x==v[k]?'selected':''}>${esc(x)}</option>`).join('')}</select>`:ty=='file'?`<input id=f_${k} type=file accept="image/*">`:`<input id=f_${k} type=${ty} value="${esc(v[k])}">`}</label>`).join('')}<button class=pr id=sv>Guardar</button>`);
+$('#sv').onclick=async()=>{const r={};for(const[k,,ty]of f){const e=$('#f_'+k);r[k]=ty=='file'?(e.files[0]?await new Promise(y=>img(e.files[0],y)):v[k]||''):ty=='number'?+e.value:e.value}done(r);cl();save();admin()}}
+function ed(key,i,f,def){const a=S[key];form(i>=0?'Editar':'Nuevo',f,i>=0?a[i]:def,r=>i>=0?Object.assign(a[i],r):a.push({...def,...r}))}
+function cfgEd(){const f=[['name','Nombre del negocio','text'],['logo','Logo','file'],['color','Color principal','color'],['wa','WhatsApp (con código de país)','text'],['cur','Moneda','text'],['btn','Texto del botón','text'],['cats','Categorías (separadas por coma)','text']];
+form('Configuración',f,{...S.cfg,cats:S.cats.join(',')},r=>{S.cats=r.cats.split(',').map(s=>s.trim()).filter(Boolean);delete r.cats;S.cfg=r})}
+function del(k,i){if(confirm('¿Eliminar este registro?')){S[k].splice(i,1);save();admin()}}
+function st(id,v){S.orders.find(o=>o.id==id).est=v;save()}
+function charts(){const o=S.orders.filter(x=>x.est!='Anulado'),by={},tp={},op={maintainAspectRatio:false};o.forEach(x=>{by[x.d]=(by[x.d]||0)+x.tot;x.items.forEach(i=>tp[i.n]=(tp[i.n]||0)+i.q)});
+const ds=Object.keys(by).sort().slice(-14),tk=Object.entries(tp).sort((a,b)=>b[1]-a[1]).slice(0,6);
+new Chart($('#c1'),{type:'bar',data:{labels:ds,datasets:[{label:'Ventas por día',data:ds.map(d=>by[d]),backgroundColor:S.cfg.color}]},options:op});
+new Chart($('#c2'),{type:'doughnut',data:{labels:tk.map(x=>x[0]),datasets:[{label:'Unidades',data:tk.map(x=>x[1])}]},options:op})}
+function xl(){const w=XLSX.utils.book_new(),a=(n,r)=>XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(r),n),by={};
+S.orders.forEach(o=>by[o.d]=(by[o.d]||0)+o.tot);
+a('Productos',S.prods.map(({img,...r})=>r));a('Pedidos',S.orders.map(o=>({...o,items:o.items.map(i=>i.q+'x '+i.n).join('; ')})));
+a('VentasPorDia',Object.keys(by).sort().map(d=>({Fecha:d,Total:by[d]})));XLSX.writeFile(w,'catalogo_'+new Date().toISOString().slice(0,10)+'.xlsx')}
+(async()=>{if(API)try{const n=await(await fetch(API)).json();if(n.prods)S=n}catch(e){}shop()})();
+</script></body></html>
