@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Asistencia - Grupo Espino</title>
+    <!-- Tailwind CSS para un diseño limpio y moderno -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons para iconos profesionales -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS para exportación nativa a Excel sin dependencias de servidor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Encabezado Principal -->
+    <header class="bg-green-700 text-white shadow-md py-6 px-4 mb-8">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i data-lucide="clipboard-check" class="w-8 h-8 text-green-200"></i>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Control de Asistencia</h1>
+                    <p class="text-sm text-green-100 font-medium">Agrícola Espino & Grupo Espino</p>
+                </div>
+            </div>
+            <div class="text-right text-sm text-green-100 bg-green-800/40 px-4 py-2 rounded-lg border border-green-600/30">
+                <span id="current-date-time" class="font-mono">Cargando fecha y hora...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 pb-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Formulario de Registro (Columna Izquierda / 1 tercio) -->
+            <div class="md:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 h-fit">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2 border-b pb-2">
+                    <i data-lucide="user-plus" class="w-5 h-5 text-green-600"></i>
+                    Nuevo Registro
+                </h2>
+                
+                <form id="attendance-form" class="space-y-4">
+                    <div>
+                        <label for="employee-name" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Nombre y Apellido</label>
+                        <input type="text" id="employee-name" required placeholder="Ej. Juan Pérez"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm">
+                    </div>
+
+                    <div>
+                        <label for="record-type" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tipo de Evento</label>
+                        <select id="record-type" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm bg-white">
+                            <option value="Ingreso">🚀 Ingreso</option>
+                            <option value="Salida">🏁 Salida</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-150 flex items-center justify-center gap-2 text-sm shadow-sm">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        Guardar Registro
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tabla y Acciones (Columna Derecha / 2 tercios) -->
+            <div class="md:col-span-2 space-y-4">
+                
+                <!-- Barra de Acciones Globales -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-5 h-5 text-slate-400"></i>
+                        <span class="text-sm font-medium text-slate-700">Registros del Día</span>
+                    </div>
+                    
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="exportToExcel()" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                            Exportar Excel (.xlsx)
+                        </button>
+                        <button onclick="clearLogs()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold py-2 px-3 rounded-lg transition-colors border border-rose-200 flex items-center justify-center gap-1" title="Limpiar todos los registros">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contenedor de la Tabla -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                                    <th class="py-3 px-4">Personal</th>
+                                    <th class="py-3 px-4">Tipo</th>
+                                    <th class="py-3 px-4">Fecha / Hora</th>
+                                    <th class="py-3 px-4 text-right">Enviar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-table-body" class="divide-y divide-slate-100 text-sm text-slate-700">
+                                <!-- Filas dinámicas aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Estado Vacío -->
+                    <div id="empty-state" class="p-8 text-center hidden">
+                        <i data-lucide="folder-open" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+                        <p class="text-slate-500 font-medium text-sm">No hay registros guardados hoy</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de Página Profesional -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 mt-auto border-t border-slate-800">
+        <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div>
+                <p>&copy; 2026 Grupo Espino. Todos los derechos reservados.</p>
+            </div>
+            <div class="flex items-center gap-1.5 font-medium text-slate-300 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700/50">
+                <i data-lucide="code" class="w-3.5 h-3.5 text-green-500"></i>
+                <span>Creado por <strong class="text-white">Andy Espino A.</strong></span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lógica de la Aplicación -->
+    <script>
+        // Inicializar Iconos de Lucide
+        lucide.createIcons();
+
+        // Reloj en tiempo real
+        function updateClock() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                hour12: false 
+            };
+            document.getElementById('current-date-time').textContent = now.toLocaleDateString('es-ES', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Cargar registros iniciales desde LocalStorage
+        let attendanceLogs = JSON.parse(localStorage.getItem('attendance_logs_espino')) || [];
+
+        const form = document.getElementById('attendance-form');
+        const tableBody = document.getElementById('attendance-table-body');
+        const emptyState = document.getElementById('empty-state');
+
+        // Renderizar la tabla de registros
+        function renderTable() {
+            tableBody.innerHTML = '';
+            
+            if (attendanceLogs.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // Mostrar los más recientes primero
+            [...attendanceLogs].reverse().forEach((log, index) => {
+                const originalIndex = attendanceLogs.length - 1 - index;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                
+                const badgeClass = log.type === 'Ingreso' 
+                    ? 'bg-green-50 text-green-700 border-green-200' 
+                    : 'bg-amber-50 text-amber-700 border-amber-200';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-medium text-slate-900">${log.name}</td>
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${badgeClass}">
+                            ${log.type}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 font-mono text-xs text-slate-500">${log.date} ${log.time}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="sendIndividualWhatsApp(${originalIndex})" class="inline-flex items-center justify-center p-1.5 rounded-md text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 transition-all" title="Enviar comprobante por WhatsApp">
+                            <i data-lucide="share-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            
+            // Re-renderizar iconos dinámicos
+            lucide.createIcons();
+        }
+
+        // Guardar nuevo registro
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('employee-name');
+            const typeInput = document.getElementById('record-type');
+            
+            const now = new Date();
+            
+            // Formatear Fecha (DD/MM/YYYY) y Hora (HH:MM:SS)
+            const dateStr = now.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('es-PE', { hour12: false });
+
+            const newLog = {
+                name: nameInput.value.trim(),
+                type: typeInput.value,
+                date: dateStr,
+                time: timeStr
+            };
+
+            attendanceLogs.push(newLog);
+            localStorage.setItem('attendance_logs_espino', JSON.stringify(attendanceLogs));
+            
+            nameInput.value = '';
+            renderTable();
+        });
+
+        // Enviar por WhatsApp un registro individual
+        function sendIndividualWhatsApp(index) {
+            const log = attendanceLogs[index];
+            const message = `📌 *CONTROL DE ASISTENCIA - GRUPO ESPINO*
+
+` +
+                            `👤 *Personal:* ${log.name}
+` +
+                            `📋 *Acción:* ${log.type === 'Ingreso' ? '🚀 INGRESO' : '🏁 SALIDA'}
+` +
+                            `📅 *Fecha:* ${log.date}
+` +
+                            `🕐 *Hora:* ${log.time}
+
+` +
+                            `_Sistema de Gestión Agrícola Espino_`;
+            
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+        }
+
+        // Generar y exportar Excel por día de forma nativa
+        function exportToExcel() {
+            if (attendanceLogs.length === 0) {
+                alert('No hay registros guardados para exportar.');
+                return;
+            }
+
+            // Obtener fecha de hoy para el título del archivo
+            const now = new Date();
+            const dateLabel = now.toISOString().split('T')[0];
+
+            // Mapear y preparar datos estructurados para el reporte
+            const worksheetData = attendanceLogs.map((log, index) => ({
+                'N°': index + 1,
+                'Trabajador / Personal': log.name,
+                'Tipo de Evento': log.type,
+                'Fecha': log.date,
+                'Hora': log.time
+            }));
+
+            // Crear libro y hoja con SheetJS
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+
+            // Ajuste básico de anchos de columna para visualización profesional
+            const colWidths = [
+                { wch: 6 },
+                { wch: 30 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 12 }
+            ];
+            worksheet['!cols'] = colWidths;
+
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
+
+            // Descargar el archivo excel generado
+            XLSX.writeFile(workbook, `Asistencia_Diaria_${dateLabel}_GrupoEspino.xlsx`);
+        }
+
+        // Limpiar base de datos local previa confirmación de seguridad
+        function clearLogs() {
+            if (confirm('¿Está seguro de que desea limpiar todos los registros de hoy? Esta acción no se puede deshacer.')) {
+                attendanceLogs = [];
+                localStorage.removeItem('attendance_logs_espino');
+                renderTable();
+            }
+        }
+
+        // Renderizado Inicial al cargar la página
+        renderTable();
+    </script>
+</body>
+</html>
