@@ -1,10 +1,10 @@
 <!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Grupo Espino | Catálogo</title>
 <meta name="description" content="Pasión por la agricultura. Mira nuestros productos y pide por WhatsApp">
-<meta name="theme-color" content="#2f6b4f">
-<meta property="og:type" content="website"><meta property="og:title" content="Grupo Espino">
+<meta name="theme-color" content="#2f6b4f"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<meta property="og:type" content="website"><meta property="og:url" content="https://agricolaespino1-pixel.github.io/catalogoAGE/"><meta property="og:title" content="Grupo Espino">
 <meta property="og:description" content="Pasión por la agricultura. Mira nuestros productos y pide por WhatsApp">
-<meta property="og:image" content="https://TUUSUARIO.github.io/NOMBRE-DEL-REPO/preview.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://TUUSUARIO.github.io/NOMBRE-DEL-REPO/preview.jpg">
+<meta property="og:image" content="https://agricolaespino1-pixel.github.io/catalogoAGE/preview.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://agricolaespino1-pixel.github.io/catalogoAGE/preview.jpg">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -84,16 +84,16 @@ const tbl=(h,r)=>`<div class=tw><table><tr>${h.map(x=>`<th>${x}`).join('')}${r}<
 const V={
 dash:()=>{const o=S.orders.filter(x=>x.est!='Anulado'),t=new Date().toISOString().slice(0,10),sum=a=>a.reduce((s,x)=>s+x.tot,0),c=S.cfg.cur;
 return `<div class=k><div>Ventas hoy<b>${c}${sum(o.filter(x=>x.d==t)).toFixed(2)}</b></div><div>Ventas del mes<b>${c}${sum(o.filter(x=>x.d.startsWith(t.slice(0,7)))).toFixed(2)}</b></div><div>Pedidos<b>${o.length}</b></div><div>Ticket promedio<b>${c}${(o.length?sum(o)/o.length:0).toFixed(2)}</b></div><div>Stock bajo<b>${S.prods.filter(p=>p.s<5).length}</b></div></div><div class=cv><canvas id=c1></canvas></div><div class=cv><canvas id=c2></canvas></div><button class=sm onclick="xl()">⬇ Descargar Excel</button>`},
-prod:()=>`<button class=sm onclick="ed('prods',-1,PF(),{id:Date.now(),st:'Activo',c:'Sin categoría',s:0,p:0,b:'',d:''})">+ Nuevo producto</button>`+tbl(['Producto','Categoría','Precio','Stock','Estado',''],S.prods.map((p,i)=>`<tr><td>${esc(p.n)}<td>${esc(p.c)}<td>${p.p}<td style="color:${p.s<5?'#d33':'inherit'}">${p.s}<td>${p.st}<td><button class=sm onclick="ed('prods',${i},PF())">Editar</button> <button class=sm onclick="del('prods',${i})">✕</button>`).join('')),
-ped:()=>`<button class=sm onclick="xl()">⬇ Descargar Excel</button>`+tbl(['Fecha','Cliente','Detalle','Total','Estado'],S.orders.slice().reverse().map(o=>`<tr><td>${o.d}<td>${esc(o.cl)}<td>${o.items.map(i=>i.q+'x '+esc(i.n)).join(', ')}<td>${S.cfg.cur}${o.tot.toFixed(2)}<td><select onchange="st(${o.id},this.value)">${['Nuevo','Confirmado','Entregado','Anulado'].map(e=>`<option ${e==o.est?'selected':''}>${e}`).join('')}</select>`).join('')),
+prod:()=>`<button class=sm onclick="ed('prods',-1,PF(),{id:Date.now(),st:'Activo',c:'',s:0,p:0,b:'',d:''})">+ Nuevo producto</button> <button class=sm onclick="xl('prod')">⬇ Excel (tabla)</button>`+tbl(['Producto','Categoría','Precio','Stock','Estado',''],S.prods.map((p,i)=>`<tr><td>${esc(p.n)}<td>${esc(p.c)}<td>${p.p}<td style="color:${p.s<5?'#d33':'inherit'}">${p.s}<td>${p.st}<td><button class=sm onclick="ed('prods',${i},PF())">Editar</button> <button class=sm onclick="del('prods',${i})">✕</button>`).join('')),
+ped:()=>`<button class=sm onclick="xl('ped')">⬇ Descargar Excel</button>`+tbl(['Fecha','Cliente','Detalle','Total','Estado'],S.orders.slice().reverse().map(o=>`<tr><td>${o.d}<td>${esc(o.cl)}<td>${o.items.map(i=>i.q+'x '+esc(i.n)).join(', ')}<td>${S.cfg.cur}${o.tot.toFixed(2)}<td><select onchange="st(${o.id},this.value)">${['Nuevo','Confirmado','Entregado','Anulado'].map(e=>`<option ${e==o.est?'selected':''}>${e}`).join('')}</select>`).join('')),
 ban:()=>`<button class=sm onclick="ed('banners',-1,BF(),{t:'',x:'',img:''})">+ Nuevo banner</button>`+tbl(['Título','Texto',''],S.banners.map((b,i)=>`<tr><td>${esc(b.t)}<td>${esc(b.x)}<td><button class=sm onclick="ed('banners',${i},BF())">Editar</button> <button class=sm onclick="del('banners',${i})">✕</button>`).join('')),
-cfg:()=>`<button class=sm onclick="cfgEd()">Editar nombre, logo, colores y WhatsApp</button><p>Categorías: ${S.cats.map(esc).join(', ')}</p>`,
+cfg:()=>`<button class=sm onclick="cfgEd()">Editar nombre, logo, colores y WhatsApp</button><p>Categorías: ${S.cats.map(esc).join(', ')||'ninguna (se crean al guardar un producto)'}</p><p><button class=sm onclick="bk()">⬇ Descargar respaldo</button> <label class=sm>⬆ Restaurar respaldo<input type=file accept=".json" hidden onchange="rs(this.files[0])"></label></p><p>Descarga un respaldo antes de actualizar la página o cambiar de dispositivo.</p>`,
 usr:()=>`<button class=sm onclick="ed('users',-1,UF(),{u:'',p:'',r:'vendedor'})">+ Nuevo usuario</button>`+tbl(['Usuario','Rol',''],S.users.map((u,i)=>`<tr><td>${esc(u.u)}<td>${u.r}<td><button class=sm onclick="ed('users',${i},UF())">Editar</button> <button class=sm onclick="del('users',${i})">✕</button>`).join(''))};
-const PF=()=>[['n','Nombre','text'],['c','Categoría','select',['Sin categoría',...S.cats]],['p','Precio','number'],['s','Stock','number'],['d','Descripción corta','text'],['b','Etiqueta (Nuevo, Oferta)','text'],['st','Estado','select',['Activo','Oculto']],['img','Foto','file']];
+const PF=()=>[['n','Nombre','text'],['c','Categoría (escribe una nueva o elige)','list',S.cats],['p','Precio','number'],['s','Stock','number'],['d','Descripción corta','text'],['b','Etiqueta (Nuevo, Oferta)','text'],['st','Estado','select',['Activo','Oculto']],['img','Foto','file']];
 const BF=()=>[['t','Título','text'],['x','Texto','text'],['img','Imagen','file']],UF=()=>[['u','Usuario','text'],['p','Contraseña','text'],['r','Rol','select',['admin','vendedor','bodega']]];
-function form(t,f,v,done){modal(`<h3>${t}</h3>${f.map(([k,l,ty,o])=>`<label>${l}${ty=='select'?`<select id=f_${k}>${o.map(x=>`<option ${x==v[k]?'selected':''}>${esc(x)}</option>`).join('')}</select>`:ty=='file'?`<input id=f_${k} type=file accept="image/*">`:`<input id=f_${k} type=${ty} value="${esc(v[k])}">`}</label>`).join('')}<button class=pr id=sv>Guardar</button>`);
-$('#sv').onclick=async()=>{const r={};for(const[k,,ty]of f){const e=$('#f_'+k);r[k]=ty=='file'?(e.files[0]?await new Promise(y=>img(e.files[0],y)):v[k]||''):ty=='number'?+e.value:e.value}done(r);cl();save();admin()}}
-function ed(key,i,f,def){const a=S[key];form(i>=0?'Editar':'Nuevo',f,i>=0?a[i]:def,r=>i>=0?Object.assign(a[i],r):a.push({...def,...r}))}
+function form(t,f,v,done){modal(`<h3>${t}</h3>${f.map(([k,l,ty,o])=>`<label>${l}${ty=='select'?`<select id=f_${k}>${o.map(x=>`<option ${x==v[k]?'selected':''}>${esc(x)}</option>`).join('')}</select>`:ty=='list'?`<input id=f_${k} list=dl_${k} value="${esc(v[k])}" placeholder="Escribe una nueva o elige"><datalist id=dl_${k}>${o.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>`:ty=='file'?`<input id=f_${k} type=file accept="image/*">`:`<input id=f_${k} type=${ty} value="${esc(v[k])}">`}</label>`).join('')}<button class=pr id=sv>Guardar</button>`);
+$('#sv').onclick=async()=>{const r={};for(const[k,,ty]of f){const e=$('#f_'+k);r[k]=ty=='file'?(e.files[0]?await new Promise(y=>img(e.files[0],y)):v[k]||''):ty=='number'?+e.value:e.value.trim()}done(r);cl();save();admin()}}
+function ed(key,i,f,def){const a=S[key];form(i>=0?'Editar':'Nuevo',f,i>=0?a[i]:def,r=>{if(key=='prods'){r.c=r.c||'Sin categoría';if(r.c!='Sin categoría'&&!S.cats.includes(r.c))S.cats.push(r.c)}i>=0?Object.assign(a[i],r):a.push({...def,...r})})}
 function cfgEd(){const f=[['name','Nombre del negocio','text'],['logo','Logo','file'],['color','Color principal','color'],['wa','WhatsApp (con código de país)','text'],['cur','Moneda','text'],['btn','Texto del botón','text'],['slogan','Frase de bienvenida (inicio)','text'],['video','Video de inicio (link .mp4 o nombre del archivo, ej: intro.mp4)','text'],['cats','Categorías (separadas por coma)','text']];
 form('Configuración',f,{...S.cfg,cats:S.cats.join(',')},r=>{S.cats=r.cats.split(',').map(s=>s.trim()).filter(Boolean);delete r.cats;S.cfg=r})}
 function del(k,i){if(confirm('¿Eliminar este registro?')){S[k].splice(i,1);save();admin()}}
@@ -102,22 +102,27 @@ function charts(){const o=S.orders.filter(x=>x.est!='Anulado'),by={},tp={},op={m
 const ds=Object.keys(by).sort().slice(-14),tk=Object.entries(tp).sort((a,b)=>b[1]-a[1]).slice(0,6);
 new Chart($('#c1'),{type:'bar',data:{labels:ds,datasets:[{label:'Ventas por día',data:ds.map(d=>by[d]),backgroundColor:S.cfg.color}]},options:op});
 new Chart($('#c2'),{type:'doughnut',data:{labels:tk.map(x=>x[0]),datasets:[{label:'Unidades',data:tk.map(x=>x[1])}]},options:op})}
-function xl(){const w=XLSX.utils.book_new(),o=S.orders.filter(x=>x.est!='Anulado'),by={},tp={},ct={},tot=o.reduce((a,x)=>a+x.tot,0),
-a=(n,r)=>{const h=XLSX.utils.json_to_sheet(r);h['!cols']=Object.keys(r[0]||{A:1}).map(()=>({wch:20}));XLSX.utils.book_append_sheet(w,h,n)},
-tb=(k,v,o2)=>Object.entries(o2).sort((x,y)=>y[1]-x[1]).map(e=>({[k]:e[0],[v]:e[1]}));
+function xl(w){const wb=XLSX.utils.book_new(),all=S.orders,o=all.filter(x=>x.est!='Anulado'),by={},tp={},ct={},tot=o.reduce((a,x)=>a+x.tot,0),
+sh=(n,r)=>{if(!r.length)r=[{'Sin datos':''}];const t=XLSX.utils.json_to_sheet(r),k=Object.keys(r[0]);t['!cols']=k.map(h=>({wch:Math.min(45,Math.max(h.length+4,...r.map(x=>String(x[h]??'').length+2)))}));t['!autofilter']={ref:t['!ref']};XLSX.utils.book_append_sheet(wb,t,n)},
+rk=(a,b,m)=>Object.entries(m).sort((x,y)=>y[1]-x[1]).map(e=>({[a]:e[0],[b]:e[1]}));
 o.forEach(x=>{by[x.d]=(by[x.d]||0)+x.tot;x.items.forEach(i=>{tp[i.n]=(tp[i.n]||0)+i.q;const c=i.c||'Otros';ct[c]=(ct[c]||0)+i.q*i.p})});
-a('Dashboard',[{Indicador:'Ventas totales',Valor:tot},{Indicador:'Pedidos',Valor:o.length},{Indicador:'Ticket promedio',Valor:o.length?tot/o.length:0},{Indicador:'Productos con stock bajo',Valor:S.prods.filter(p=>p.s<5).length}]);
-a('Productos',S.prods.map(({img,...r})=>r));a('Pedidos',S.orders.map(o=>({...o,items:o.items.map(i=>i.q+'x '+i.n).join('; ')})));
-a('VentasPorDia',Object.keys(by).sort().map(d=>({Fecha:d,Total:by[d]})));a('TopProductos',tb('Producto','Unidades',tp));a('VentasPorCategoria',tb('Categoria','Ventas',ct));
-XLSX.writeFile(w,'catalogo_'+new Date().toISOString().slice(0,10)+'.xlsx')}
-function clean(){S.cats=S.cats.filter(c=>!['Frutas','Abonos','Servicios'].includes(c));
+const P=()=>sh('Productos',S.prods.map(p=>({ID:p.id,Producto:p.n,Categoría:p.c,Descripción:p.d||'',Precio:p.p,Stock:p.s,Etiqueta:p.b||'',Estado:p.st}))),
+Q=()=>{sh('Pedidos',all.map(x=>({ID:x.id,Fecha:x.d,Cliente:x.cl,Detalle:x.items.map(i=>i.q+'x '+i.n).join('; '),Total:x.tot,Estado:x.est})));
+sh('Detalle pedidos',all.flatMap(x=>x.items.map(i=>({Fecha:x.d,Pedido:x.id,Cliente:x.cl,Producto:i.n,Categoría:i.c||'Otros',Cantidad:i.q,Precio:i.p,Subtotal:i.q*i.p,Estado:x.est}))))};
+if(w=='prod')P();else if(w=='ped')Q();else{sh('Dashboard',[{Indicador:'Ventas totales',Valor:tot},{Indicador:'Pedidos',Valor:o.length},{Indicador:'Ticket promedio',Valor:o.length?tot/o.length:0},{Indicador:'Productos con stock bajo',Valor:S.prods.filter(p=>p.s<5).length}]);P();Q();
+sh('Ventas por día',Object.keys(by).sort().map(d=>({Fecha:d,Total:by[d]})));sh('Top productos',rk('Producto','Unidades',tp));sh('Ventas por categoría',rk('Categoría','Ventas',ct))}
+XLSX.writeFile(wb,'catalogo_'+(w||'completo')+'_'+new Date().toISOString().slice(0,10)+'.xlsx')}
+function bk(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='respaldo_catalogo_'+new Date().toISOString().slice(0,10)+'.json';a.click()}
+function rs(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const n=JSON.parse(r.result);if(!Array.isArray(n.prods)||!n.cfg)throw 0;if(confirm('Se reemplazarán los datos actuales por los del respaldo. ¿Continuar?')){S=n;save();admin()}}catch(e){alert('El archivo no es un respaldo válido')}};r.readAsText(f)}
+function clean(){if(S.cl)return;if(['Frutas','Abonos','Servicios'].every(c=>S.cats.includes(c)))S.cats=S.cats.filter(c=>!['Frutas','Abonos','Servicios'].includes(c));
 S.prods=S.prods.filter(p=>!['Compost orgánico 25 kg','Uva red globe 5 kg','Asesoría de cultivo'].includes(p.n));
 if(S.cfg.name=='Mi Catálogo')S.cfg.name='Grupo Espino';S.cfg.slogan=S.cfg.slogan||'Pasión por la agricultura';
-S.banners.forEach(b=>{if(b.x=='Pide hoy y recibe en tu puerta')b.x='Pasión por la agricultura';if(b.t=='Calidad directa del campo')b.t='Grupo Espino'})}
+S.banners.forEach(b=>{if(b.x=='Pide hoy y recibe en tu puerta')b.x='Pasión por la agricultura';if(b.t=='Calidad directa del campo')b.t='Grupo Espino'});S.cl=1;save()}
 function splash(){const c=S.cfg,d=document.createElement('div');d.id='sp';
 const bg=c.video?`<video src="${esc(c.video)}" autoplay muted loop playsinline></video><div class=sv></div>`:`<picture><source media="(min-aspect-ratio:1/1)" srcset="preview.jpg"><img src="inicio.jpg" alt="${esc(c.name)}" onerror="this.parentNode.remove();$('#sf').style.display='flex'"></picture>`;
 d.innerHTML=`${bg}<button class=sk onclick="spx()">Saltar</button><div class=sc id=sf style="display:${c.video?'flex':'none'}">${c.logo?`<img class=sl src="${c.logo}">`:''}<h1>${esc(c.name)}</h1><div class=sn></div><p>${esc(c.slogan||'')}</p></div><button class=sbtn onclick="spx()">Ver catálogo</button>`;
 document.body.append(d);const v=d.querySelector('video');if(v){v.muted=true;v.play().catch(()=>{})}setTimeout(spx,9000)}
 function spx(){const d=$('#sp');if(!d)return;d.classList.add('out');setTimeout(()=>d.remove(),700)}
 (async()=>{if(API)try{const n=await(await fetch(API)).json();if(n.prods)S=n}catch(e){}clean();shop();splash()})();
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script></body></html>
