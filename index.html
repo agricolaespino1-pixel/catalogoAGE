@@ -138,7 +138,7 @@ demo.visto=id=>{const a=demo.catalogo(),p=a.find(x=>x.id===id);if(p){p.vistas=(p
 demo.crearPedido=o=>{const a=demo.pedidos();a.unshift({id:'P'+Date.now(),fecha:new Date().toLocaleString('sv-SE'),cliente:o.cliente,tel:o.tel,items:JSON.stringify(o.items),total:o.total,estado:'Nuevo'});SV('peds',a);const ps=demo.catalogo();o.items.forEach(i=>{const p=ps.find(x=>x.id===i.id);if(p){p.stock=Math.max(0,p.stock-i.qty);p.vendidos=(p.vendidos||0)+i.qty}});SV('prods',ps)};
 demo.boot=()=>({P:demo.catalogo(),CFG:demo.config(),B:demo.banners()});
 /* ===== base ===== */
-const API_URL=''; /* si alojas la página fuera de Apps Script, pega aquí tu enlace /exec */
+const API_URL='https://script.google.com/macros/s/AKfycbwnK1nkdOVNQWW0YQ2Nvdsw_rZYwEA3D88ebuVke9RpqtiB1b-oS51OidLmhON0IsSAgA/exec'; /* si alojas la página fuera de Apps Script, pega aquí tu enlace /exec */
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bg=u=>u?`style="background-image:url('${esc(u)}')"`:'';
